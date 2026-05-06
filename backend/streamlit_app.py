@@ -10,13 +10,29 @@ logger = logging.getLogger(__name__)
 sys.path.insert(0, str(Path(__file__).parent))
 
 try:
-    from embedder import search_in_db
-    from config import DB_PATH, COLLECTION_NAME
+    from embedder import search_in_db, embed_and_store
+    from config import DB_PATH, COLLECTION_NAME, CHUNKS_PKL_PATH, DOCUMENTS_PKL_PATH, MOVIES_CSV_PATH
     from rag import GroqClient
+    from retrieval import load_or_create, prepare_documents, create_chunks
 except ImportError as e:
     logger.error(f"Failed to import required modules: {e}")
     st.error(f"Failed to load required modules: {e}")
     st.stop()
+
+
+@st.cache_resource(show_spinner=False)
+def initialize_database():
+    """Auto-initialize the vector DB if not already done — mirrors rag.py main()."""
+    try:
+        logger.info("Checking / initializing vector database...")
+        documents = load_or_create(DOCUMENTS_PKL_PATH, prepare_documents, file_path=MOVIES_CSV_PATH)
+        load_or_create(CHUNKS_PKL_PATH, create_chunks, documents=documents)
+        embed_and_store(CHUNKS_PKL_PATH, DB_PATH, COLLECTION_NAME)
+        logger.info("Vector database ready.")
+        return True
+    except Exception as e:
+        logger.error(f"DB initialization failed: {e}")
+        return False
 
 
 st.set_page_config(
@@ -496,6 +512,12 @@ EXAMPLE_QUERIES = [
 
 
 def main():
+    # ── Ensure DB is ready (cached, only runs once per session) ──
+    db_ready = initialize_database()
+    if not db_ready:
+        st.error("⚠️ Could not initialize the movie database. Check logs for details.")
+        st.stop()
+
     # ── Sidebar ──────────────────────────────────────────
     with st.sidebar:
         st.markdown("## Settings")
