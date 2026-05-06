@@ -4,14 +4,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 import pandas as pd
+from config import DATA_DIR, MOVIES_CSV_PATH, DOCUMENTS_PKL_PATH, CHUNKS_PKL_PATH
 
-
-# Define constants for file paths
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / "data"
-MOVIES_CSV_PATH = DATA_DIR / "tmdb_5000_movies.csv"
-DOCUMENTS_PKL_PATH = DATA_DIR / "movie_documents.pkl"
-CHUNKS_PKL_PATH = DATA_DIR / "movie_chunks.pkl"
 
 @dataclass
 class Document:
