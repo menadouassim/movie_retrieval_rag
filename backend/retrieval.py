@@ -87,6 +87,7 @@ def load_or_create(pkl_path: Path, creation_func, *args, **kwargs) -> Any:
             return pickle.load(f)
     
     data = creation_func(*args, **kwargs)
+    pkl_path.parent.mkdir(parents=True, exist_ok=True)
     with open(pkl_path, 'wb') as f:
         pickle.dump(data, f)
     
